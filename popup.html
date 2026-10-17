@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MonkeyHide</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-title">
+      <span class="logo">🙈</span>
+      <div>
+        <h1>MonkeyHide</h1>
+        <p id="currentSiteLabel" class="subtitle">Carregando site...</p>
+      </div>
+    </div>
+    <button id="pickElementBtn" class="btn-primary" title="Clique para escolher visualmente um elemento na aba atual">
+      🎯 Selecionar na página
+    </button>
+  </header>
+
+  <main class="container">
+    <!-- Adicionar ou selecionar site manualmente -->
+    <section class="card">
+      <div class="section-header">
+        <label for="siteInput">Site (domínio)</label>
+        <div class="toggle-wrapper" id="siteToggleWrapper" hidden>
+          <input type="checkbox" id="siteEnabledToggle" checked />
+          <label for="siteEnabledToggle">Ativo</label>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <input
+          type="text"
+          id="siteInput"
+          placeholder="ex: youtube.com"
+          autocomplete="off"
+        />
+        <select id="savedSitesSelect" title="Sites salvos">
+          <option value="">Sites salvos...</option>
+        </select>
+      </div>
+
+      <label for="selectorInput" class="mt-8">Adicionar elemento manualmente</label>
+      <input
+        type="text"
+        id="descriptionInput"
+        placeholder="Descrição opcional (ex: Banner lateral)"
+        autocomplete="off"
+      />
+      <div class="input-group">
+        <input
+          type="text"
+          id="selectorInput"
+          placeholder="Seletor CSS (ex: #banner, .anuncio)"
+          autocomplete="off"
+        />
+        <button id="addSelectorBtn" class="btn-secondary">Adicionar</button>
+      </div>
+    </section>
+
+    <!-- Lista de elementos escondidos do site selecionado -->
+    <section class="card">
+      <div class="section-header">
+        <h2>Elementos escondidos (<span id="countBadge">0</span>)</h2>
+        <button id="clearSiteBtn" class="btn-link-danger" hidden>Limpar tudo</button>
+      </div>
+
+      <ul id="selectorsList" class="selectors-list"></ul>
+      <p id="emptyState" class="empty-state">
+        Nenhum elemento escondido neste site ainda.
+      </p>
+    </section>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>
