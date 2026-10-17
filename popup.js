@@ -66,6 +66,7 @@ function renderSavedSitesDropdown() {
 
 function renderSiteDetails() {
   const domain = getSelectedDomain();
+  const logoEl = document.querySelector(".logo");
   selectorsList.innerHTML = "";
 
   if (
@@ -81,15 +82,18 @@ function renderSiteDetails() {
     if (domain && allSites[domain]) {
       siteEnabledToggle.checked = allSites[domain].enabled !== false;
     }
+    if (logoEl) logoEl.textContent = "🐵";
     return;
   }
 
   const siteData = allSites[domain];
+  const isEnabled = siteData.enabled !== false;
   emptyState.hidden = true;
   clearSiteBtn.hidden = false;
   siteToggleWrapper.hidden = false;
-  siteEnabledToggle.checked = siteData.enabled !== false;
+  siteEnabledToggle.checked = isEnabled;
   countBadge.textContent = String(siteData.selectors.length);
+  if (logoEl) logoEl.textContent = isEnabled ? "🙈" : "🐵";
 
   siteData.selectors.forEach((rawEntry, index) => {
     const entry = normalizeSelectorEntry(rawEntry);

@@ -66,6 +66,7 @@
   function loadAndApply() {
     chrome.storage.local.get(["sites"], (result) => {
       applyHiddenElements(result.sites || {});
+      chrome.runtime.sendMessage({ action: "SYNC_ICON" }).catch(() => {});
     });
   }
 
