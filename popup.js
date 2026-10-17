@@ -13,6 +13,8 @@ const siteToggleWrapper = document.getElementById("siteToggleWrapper");
 const siteEnabledToggle = document.getElementById("siteEnabledToggle");
 
 let activeTabId = null;
+let activeTabDomain = "";
+let activeTabTitle = "";
 let allSites = {};
 
 function normalizeDomain(input) {
@@ -47,16 +49,27 @@ function getSelectedDomain() {
   return normalizeDomain(siteInput.value);
 }
 
+function getSiteDisplayTitle(domain) {
+  const savedTitle = allSites[domain]?.title?.trim();
+  return savedTitle || domain;
+}
+
 function renderSavedSitesDropdown() {
   const currentSelected = getSelectedDomain();
-  const domains = Object.keys(allSites).sort();
+  const domains = Object.keys(allSites).sort((a, b) =>
+    getSiteDisplayTitle(a).localeCompare(getSiteDisplayTitle(b), "pt-BR", {
+      sensitivity: "base"
+    })
+  );
 
   savedSitesSelect.innerHTML = `<option value="">Sites salvos (${domains.length})</option>`;
   domains.forEach((domain) => {
     const count = allSites[domain]?.selectors?.length || 0;
+    const displayTitle = getSiteDisplayTitle(domain);
     const option = document.createElement("option");
     option.value = domain;
-    option.textContent = `${domain} (${count})`;
+    option.textContent = `${displayTitle} (${count})`;
+    option.title = `${displayTitle} — ${domain}`;
     if (domain === currentSelected) {
       option.selected = true;
     }
@@ -95,7 +108,8 @@ function renderSiteDetails() {
   countBadge.textContent = String(siteData.selectors.length);
   if (logoEl) logoEl.textContent = isEnabled ? "🙈" : "🐵";
 
-  siteData.selectors.forEach((rawEntry, index) => {
+  // Exibe do mais novo (último adicionado) para o mais antigo
+  [...siteData.selectors.entries()].reverse().forEach(([index, rawEntry]) => {
     const entry = normalizeSelectorEntry(rawEntry);
     const li = document.createElement("li");
     li.className = "selector-item";
@@ -160,11 +174,17 @@ function saveSitesToStorage(callback) {
 function addSelector(domain, selector, description = "") {
   if (!domain || !selector) return;
 
+  const inferredTitle =
+    domain === activeTabDomain && activeTabTitle ? activeTabTitle : domain;
+
   if (!allSites[domain]) {
     allSites[domain] = {
+      title: inferredTitle,
       enabled: true,
       selectors: []
     };
+  } else if (!allSites[domain].title && domain === activeTabDomain && activeTabTitle) {
+    allSites[domain].title = activeTabTitle;
   }
 
   const existingIndex = allSites[domain].selectors.findIndex(
@@ -302,9 +322,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const tab = tabs[0];
       if (tab && tab.url && /^https?:\/\//i.test(tab.url)) {
         activeTabId = tab.id;
-        const domain = normalizeDomain(tab.url);
-        currentSiteLabel.textContent = domain;
-        siteInput.value = domain;
+        activeTabDomain = normalizeDomain(tab.url);
+        activeTabTitle = (tab.title || "").trim();
+        currentSiteLabel.textContent = activeTabTitle || activeTabDomain;
+        siteInput.value = activeTabDomain;
+
+        if (allSites[activeTabDomain] && activeTabTitle && !allSites[activeTabDomain].title) {
+          allSites[activeTabDomain].title = activeTabTitle;
+          chrome.storage.local.set({ sites: allSites });
+        }
       } else {
         currentSiteLabel.textContent = "Página interna do navegador";
         pickElementBtn.disabled = true;

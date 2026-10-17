@@ -65,8 +65,23 @@
   // Carrega regras iniciais
   function loadAndApply() {
     chrome.storage.local.get(["sites"], (result) => {
-      applyHiddenElements(result.sites || {});
+      const sites = result.sites || {};
+      applyHiddenElements(sites);
       chrome.runtime.sendMessage({ action: "SYNC_ICON" }).catch(() => {});
+
+      const updateTitleIfNeeded = () => {
+        const pageTitle = (document.title || "").trim();
+        if (currentDomain && sites[currentDomain] && pageTitle && !sites[currentDomain].title) {
+          sites[currentDomain].title = pageTitle;
+          chrome.storage.local.set({ sites });
+        }
+      };
+
+      if (document.readyState === "loading") {
+        window.addEventListener("DOMContentLoaded", updateTitleIfNeeded, { once: true });
+      } else {
+        updateTitleIfNeeded();
+      }
     });
   }
 
@@ -275,11 +290,16 @@
 
     chrome.storage.local.get(["sites"], (result) => {
       const sites = result.sites || {};
+      const pageTitle = (document.title || "").trim();
+
       if (!sites[currentDomain]) {
         sites[currentDomain] = {
+          title: pageTitle || currentDomain,
           enabled: true,
           selectors: []
         };
+      } else if (pageTitle) {
+        sites[currentDomain].title = pageTitle;
       }
 
       const existingIndex = sites[currentDomain].selectors.findIndex(
